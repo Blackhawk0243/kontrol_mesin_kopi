@@ -6,17 +6,18 @@ import { getDatabase } from "https://www.gstatic.com/firebasejs/9.15.0/firebase-
 
 // Konfigurasi ini diambil dari kode Arduino Anda untuk memastikan sinkronisasi
 const firebaseConfig = {
-  apiKey: "AIzaSyBU342VhDqSaLhCcvvn6BFH9jRpoE-ca8c",
-  authDomain: "suhu-4d6bd.firebaseapp.com",
-  databaseURL: "https://suhu-4d6bd-default-rtdb.firebaseio.com",
-  projectId: "suhu-4d6bd",
-  storageBucket: "suhu-4d6bd.appspot.com", // Perbaikan kecil, .appspot.com adalah format umum
-  messagingSenderId: "489903971730",
-  appId: "1:489903971730:web:4ada7961e52bdb5f8e754b"
+  apiKey: "AIzaSyAhiRjtrFVFKr99eWL-jtxKnmBTFafvcxk",
+  authDomain: "kwhmeter-c92c7.firebaseapp.com",
+  databaseURL: "https://kwhmeter-c92c7-default-rtdb.firebaseio.com",
+  projectId: "kwhmeter-c92c7",
+  storageBucket: "kwhmeter-c92c7.firebasestorage.app", // Perbaikan kecil, .appspot.com adalah format umum
+  messagingSenderId: "533045697275",
+  appId: "1:533045697275:web:6de44f6bed3899de2d2e5e""
 };
 
 const app = initializeApp(firebaseConfig);
 const firestoreDB = getFirestore(app);
 const realtimeDB = getDatabase(app);
+
 
 export { firestoreDB, realtimeDB };
