@@ -190,10 +190,12 @@ function loadChartData(timeRange = 'live') {
     console.log(`📊 Memuat data chart untuk mode: ${timeRange}`);
 
     let q;
+    const colRef = collection(firestoreDB, 'temperature_logs');
 
     if (timeRange === 'live') {
+        // Gunakan limit yang dipilih user
         q = query(
-            collection(firestoreDB, 'temperature_logs'),
+            colRef,
             orderBy('timestamp', 'desc'),
             limit(currentLiveLimit)
         );
@@ -207,9 +209,11 @@ function loadChartData(timeRange = 'live') {
             case '7days': startTime = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000); break;
             default: startTime = new Date(now.getTime() - 60 * 60 * 1000); break;
         }
-        const startTimeString = startTime.toISOString();
+        
+        // ESP32 mengirim dalam format ISO (2024-xx-xxT...), pastikan query string cocok
+        const startTimeString = startTime.toISOString(); 
         q = query(
-            collection(firestoreDB, 'temperature_logs'),
+            colRef,
             where('timestamp', '>=', startTimeString),
             orderBy('timestamp', 'asc')
         );
@@ -217,19 +221,27 @@ function loadChartData(timeRange = 'live') {
 
     unsubscribeFirestore = onSnapshot(q, (snapshot) => {
         const dataPoints = [];
+        if (snapshot.empty) {
+            console.warn("⚠️ Query berhasil tapi tidak ada data ditemukan.");
+        }
+
         snapshot.forEach((doc) => {
             const data = doc.data();
-            if (data.timestamp && typeof data.temperature1 === 'number' && typeof data.temperature2 === 'number') {
+            // Validasi data agar tidak error jika ada field kosong
+            if (data.timestamp && data.temperature1 !== undefined && data.temperature2 !== undefined) {
                 const date = new Date(data.timestamp);
                 if (!isNaN(date.getTime())) {
-                    dataPoints.push({ date, temp1: data.temperature1, temp2: data.temperature2 });
+                    dataPoints.push({ 
+                        date, 
+                        temp1: parseFloat(data.temperature1), 
+                        temp2: parseFloat(data.temperature2) 
+                    });
                 }
             }
         });
 
-        // Jika mode live, data dari Firestore urutannya desc (terbaru dulu), kita perlu balik agar di grafik urut waktu
         if (timeRange === 'live') {
-            dataPoints.reverse();
+            dataPoints.reverse(); // Urutkan dari lama ke baru untuk grafik
         }
 
         const labels = dataPoints.map(p => p.date);
@@ -237,7 +249,10 @@ function loadChartData(timeRange = 'live') {
         const temperatures2 = dataPoints.map(p => p.temp2);
 
         updateChart(labels, temperatures1, temperatures2);
-    }, (error) => console.error("❌ Firestore query error:", error));
+    }, (error) => {
+        console.error("❌ Firestore query error:", error);
+        // Jika error "index", klik link yang muncul di console log browser
+    });
 }
 
 // --- Fungsi Download CSV ---
@@ -331,5 +346,6 @@ function initializeDashboard() {
     document.getElementById('downloadCsvBtn')?.addEventListener('click', downloadChartDataAsCSV);
     console.log("✅ Dashboard siap.");
 }
+
 
 document.addEventListener('DOMContentLoaded', initializeDashboard);
