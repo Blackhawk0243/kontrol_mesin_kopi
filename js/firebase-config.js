@@ -30,31 +30,28 @@
   // 3. Dengarkan hasil Query
   onSnapshot(q, (snapshot) => {
     if (!snapshot.empty) {
-      // Ambil dokumen pertama (karena kita limit 1)
-      const doc = snapshot.docs[0];
-      const data = doc.data();
-      
-      console.log("Data Terbaru:", data);
+      const data = snapshot.docs[0].data();
+      console.log("Data Terbaru dari ESP32:", data);
 
-      // Update Tampilan HTML
-      if (document.getElementById("temp1")) {
-        document.getElementById("temp1").innerText = data.temperature1.toFixed(1) + " °C";
-      }
-      if (document.getElementById("temp2")) {
-        document.getElementById("temp2").innerText = data.temperature2.toFixed(1) + " °C";
-      }
+      // Gunakan Number() untuk memastikan data diperlakukan sebagai angka
+      const t1 = Number(data.temperature1);
+      const t2 = Number(data.temperature2);
+
+      // Perbaiki ID: Sesuaikan dengan dashboard.html (biasanya suhu-1-display)
+      const display1 = document.getElementById("suhu-1-display");
+      const display2 = document.getElementById("suhu-2-display");
+
+      if (display1) display1.innerText = t1.toFixed(2) + " °C";
+      if (display2) display2.innerText = t2.toFixed(2) + " °C";
       
-      // Tampilkan jam update terakhir
-      if (document.getElementById("last-update")) {
-         document.getElementById("last-update").innerText = "Update: " + data.timestamp;
-      }
+      const lastUpdate = document.getElementById("last-update");
+      if (lastUpdate) lastUpdate.innerText = "Update: " + data.timestamp;
       
     } else {
       console.log("Database kosong.");
     }
   }, (error) => {
-    console.error("Error:", error);
-    // PENTING: Jika error di console browser bilang "The query requires an index",
-    // Klik link yang muncul di error itu untuk membuat Index di Firebase Console.
+    console.error("Firestore Error:", error);
   });
 </script>
+
