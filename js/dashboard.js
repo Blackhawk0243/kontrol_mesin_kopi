@@ -173,31 +173,23 @@ function loadChartData(timeRange = 'live') {
     if (!firestoreDB) return;
     if (unsubscribeFirestore) unsubscribeFirestore();
 
-    console.log(`📊 Memuat data chart untuk mode: ${timeRange}`);
-
     let q;
     const colRef = collection(firestoreDB, 'temperature_logs');
 
     if (timeRange === 'live') {
-        // Gunakan limit yang dipilih user
-        q = query(
-            colRef,
-            orderBy('timestamp', 'desc'),
-            limit(currentLiveLimit)
-        );
+        // Mode Live: Ambil N data terbaru tanpa filter waktu agar pasti muncul
+        q = query(colRef, orderBy('timestamp', 'desc'), limit(currentLiveLimit));
     } else {
         const now = new Date();
         let startTime;
-        switch (timeRange) {
-            case '1hour': startTime = new Date(now.getTime() - 60 * 60 * 1000); break;
-            case '6hours': startTime = new Date(now.getTime() - 6 * 60 * 60 * 1000); break;
-            case '24hours': startTime = new Date(now.getTime() - 24 * 60 * 60 * 1000); break;
-            case '7days': startTime = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000); break;
-            default: startTime = new Date(now.getTime() - 60 * 60 * 1000); break;
-        }
-        
-        // ESP32 mengirim dalam format ISO (2024-xx-xxT...), pastikan query string cocok
+        // Hitung mundur waktu
+        if (timeRange === '1hour') startTime = new Date(now.getTime() - 3600000);
+        else if (timeRange === '6hours') startTime = new Date(now.getTime() - 21600000);
+        else startTime = new Date(now.getTime() - 86400000);
+
         const startTimeString = startTime.toISOString(); 
+        
+        // QUERY INI WAJIB PAKAI INDEKS (Langkah 1)
         q = query(
             colRef,
             where('timestamp', '>=', startTimeString),
@@ -205,6 +197,26 @@ function loadChartData(timeRange = 'live') {
         );
     }
 
+    unsubscribeFirestore = onSnapshot(q, (snapshot) => {
+        console.log("Total dokumen ditemukan:", snapshot.size); // Cek apakah data masuk
+        const dataPoints = [];
+        
+        snapshot.forEach((doc) => {
+            const d = doc.data();
+            // Paksa konversi ke Number untuk menghindari error tipe data String vs Double
+            dataPoints.push({
+                date: new Date(d.timestamp),
+                temp1: parseFloat(d.temperature1 || 0),
+                temp2: parseFloat(d.temperature2 || 0)
+            });
+        });
+
+        if (timeRange === 'live') dataPoints.reverse();
+        updateChart(dataPoints.map(p => p.date), dataPoints.map(p => p.temp1), dataPoints.map(p => p.temp2));
+    }, (err) => {
+        console.error("Firestore Error:", err.message);
+    });
+}
     unsubscribeFirestore = onSnapshot(q, (snapshot) => {
         const dataPoints = [];
         if (snapshot.empty) {
@@ -335,4 +347,5 @@ function initializeDashboard() {
 
 
 document.addEventListener('DOMContentLoaded', initializeDashboard);
+
 
