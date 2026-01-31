@@ -222,6 +222,7 @@ function loadChartData(timeRange = 'live') {
         if (snapshot.empty) {
             console.warn("⚠️ Query berhasil tapi tidak ada data ditemukan.");
         }
+    }
 
         snapshot.forEach((doc) => {
             const data = doc.data();
@@ -347,5 +348,6 @@ function initializeDashboard() {
 
 
 document.addEventListener('DOMContentLoaded', initializeDashboard);
+
 
 
