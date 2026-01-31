@@ -168,6 +168,7 @@ function updateChart(labels, data1, data2) {
 }
 
 // --- Load Data dari Firestore untuk Grafik ---
+// --- Load Data dari Firestore untuk Grafik ---
 function loadChartData(timeRange = 'live') {
     if (!firestoreDB) return;
     if (unsubscribeFirestore) unsubscribeFirestore();
@@ -176,6 +177,7 @@ function loadChartData(timeRange = 'live') {
     const colRef = collection(firestoreDB, 'temperature_logs');
 
     if (timeRange === 'live') {
+        // Mode Live: Ambil N data terbaru
         q = query(colRef, orderBy('timestamp', 'desc'), limit(currentLiveLimit));
     } else {
         const now = new Date();
@@ -192,8 +194,11 @@ function loadChartData(timeRange = 'live') {
         );
     }
 
+    // Pastikan blok onSnapshot ditutup dengan benar di bawah ini
     unsubscribeFirestore = onSnapshot(q, (snapshot) => {
+        console.log("Total dokumen ditemukan:", snapshot.size);
         const dataPoints = [];
+        
         snapshot.forEach((doc) => {
             const d = doc.data();
             if (d.timestamp) {
@@ -207,14 +212,16 @@ function loadChartData(timeRange = 'live') {
 
         if (timeRange === 'live') dataPoints.reverse();
         
+        // Memanggil fungsi update grafik
         updateChart(
             dataPoints.map(p => p.date), 
             dataPoints.map(p => p.temp1), 
             dataPoints.map(p => p.temp2)
         );
     }, (err) => {
-        console.error("❌ Firestore query error:", err.message);
-    });
+        console.error("Firestore Error:", err.message);
+        // Tips: Jika error index, cek link di console browser
+    }); // <--- Tanda kurung penutup onSnapshot harus ada di sini
 }
 
 // --- Fungsi Download CSV ---
@@ -280,3 +287,4 @@ function initializeDashboard() {
 }
 
 document.addEventListener('DOMContentLoaded', initializeDashboard);
+
