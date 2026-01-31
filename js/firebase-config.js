@@ -14,7 +14,7 @@ const firebaseConfig = {
 // Inisialisasi Firebase
 const app = initializeApp(firebaseConfig);
 
-// Export agar bisa digunakan di dashboard.js
+// Export db agar bisa dibaca file dashboard.js
 export const firestoreDB = getFirestore(app);
 
-console.log("✅ Firebase Config Loaded");
+console.log("✅ Firebase Config Loaded & Firestore Initialized");
