@@ -1,4 +1,4 @@
-<script type="module">
+
   // Import fungsi Query (query, orderBy, limit, collection)
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
   import { getFirestore, collection, query, orderBy, limit, onSnapshot } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
@@ -54,4 +54,5 @@
     console.error("Firestore Error:", error);
   });
 </script>
+
 
