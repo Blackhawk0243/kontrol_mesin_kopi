@@ -139,8 +139,6 @@ function initializeChart() {
 
 // --- Listener Data Suhu Terbaru (Real-time Display) ---
 function listenForLatestTemperatures() {
-    console.log("🌡️ Menyiapkan listener untuk suhu terbaru dari Firestore...");
-    // Mengambil 1 dokumen terbaru untuk ditampilkan di kartu info
     const q = query(
         collection(firestoreDB, 'temperature_logs'),
         orderBy('timestamp', 'desc'),
@@ -148,27 +146,15 @@ function listenForLatestTemperatures() {
     );
 
     onSnapshot(q, (snapshot) => {
-        if (snapshot.empty) {
-            console.warn("Tidak ada data suhu di Firestore.");
-            return;
-        }
-        const latestDoc = snapshot.docs[0];
-        const latestData = latestDoc.data();
-        
-        const temp1 = latestData.temperature1;
-        const temp2 = latestData.temperature2;
+        if (!snapshot.empty) {
+            const data = snapshot.docs[0].data();
+            // Gunakan Number() untuk memastikan konversi dari string ke angka
+            const t1 = Number(data.temperature1).toFixed(2);
+            const t2 = Number(data.temperature2).toFixed(2);
 
-        const suhu1Display = document.getElementById('suhu-1-display');
-        const suhu2Display = document.getElementById('suhu-2-display');
-
-        if (suhu1Display && typeof temp1 === 'number') {
-            suhu1Display.innerText = `${temp1.toFixed(2)} °C`;
+            document.getElementById('suhu-1-display').innerText = `${t1} °C`;
+            document.getElementById('suhu-2-display').innerText = `${t2} °C`;
         }
-        if (suhu2Display && typeof temp2 === 'number') {
-            suhu2Display.innerText = `${temp2.toFixed(2)} °C`;
-        }
-    }, (error) => {
-        console.error("❌ Gagal mengambil data suhu terbaru:", error);
     });
 }
 
@@ -349,3 +335,4 @@ function initializeDashboard() {
 
 
 document.addEventListener('DOMContentLoaded', initializeDashboard);
+
