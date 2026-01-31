@@ -28,9 +28,35 @@ function initializeChart() {
             responsive: true,
             maintainAspectRatio: false,
             scales: {
-                x: { type: 'time', time: { unit: 'minute' }, ticks: { color: '#94a3b8' } },
-                y: { ticks: { color: '#94a3b8' } }
-            },
+    x: {
+        type: 'time', // Memberitahu Chart.js ini adalah sumbu waktu
+        time: {
+            unit: 'second', // Tampilkan per detik agar terlihat saat Live
+            displayFormats: {
+                second: 'HH:mm:ss',
+                minute: 'HH:mm'
+            }
+        },
+        ticks: {
+            color: 'rgba(255, 255, 255, 0.7)',
+            maxTicksLimit: 10, // Agar tidak terlalu penuh
+            autoSkip: true
+        },
+        grid: {
+            color: 'rgba(255, 255, 255, 0.1)'
+        }
+    },
+    y: {
+        beginAtZero: false,
+        ticks: {
+            color: 'rgba(255, 255, 255, 0.7)',
+            callback: (value) => value + '°C'
+        },
+        grid: {
+            color: 'rgba(255, 255, 255, 0.1)'
+        }
+    }
+},
             plugins: { legend: { labels: { color: 'white' } } }
         }
     });
@@ -102,3 +128,4 @@ document.addEventListener('DOMContentLoaded', () => {
         btn.addEventListener('click', () => loadChartData(btn.dataset.timeRange));
     });
 });
+
